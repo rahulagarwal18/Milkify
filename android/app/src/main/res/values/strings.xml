@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Milkify</string>
+    <string name="title_activity_main">Milkify</string>
+    <string name="package_name">com.milkify.app</string>
+    <string name="custom_url_scheme">com.milkify.app</string>
+</resources>

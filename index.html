@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Milkify - Milk Tracker</title>
+    <meta name="description" content="A minimalistic dairy tracker for everyday milk purchase recording." />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#007AFF" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Navbar / Header -->
+      <header class="app-header">
+        <div class="header-inner">
+          <h1 class="logo">Milkify</h1>
+          <button id="settingsBtn" class="icon-btn" title="Settings">
+            <i data-lucide="settings-icon"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main id="main-content">
+        <!-- View: Today -->
+        <section id="view-today" class="view active">
+          <div class="container">
+            <div class="today-header">
+              <p class="current-date" id="display-date">Loading...</p>
+              <h2 class="greeting">Milk purchased today?</h2>
+            </div>
+            
+            <div class="quantity-selector" id="quantity-picker">
+              <!-- JS will inject options here -->
+            </div>
+
+            <div class="custom-quantity-input hidden" id="custom-input-group">
+               <input type="number" id="custom-qty" placeholder="Enter quantity in kg" step="0.1" />
+               <button id="save-custom" class="btn-primary">Save</button>
+            </div>
+
+            <div class="status-card" id="status-display">
+               <div class="status-main">
+                 <div class="status-icon">🥛</div>
+                 <div class="status-info">
+                   <p class="status-label">Today's Purchase</p>
+                   <p class="status-value" id="today-qty-value">0 kg</p>
+                 </div>
+               </div>
+               <div class="status-footer" id="month-summary-link">
+                 <p class="summary-text">Total this month: <span id="month-qty-sum">0 kg</span> - <span id="month-amount-sum">₹0</span></p>
+                 <span class="chevron">→</span>
+               </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- View: Calendar -->
+        <section id="view-calendar" class="view">
+          <div class="container">
+             <div class="calendar-header">
+                <button id="prevMonth" class="icon-btn">←</button>
+                <h3 id="calendar-month-name">March 2026</h3>
+                <button id="nextMonth" class="icon-btn">→</button>
+             </div>
+             <div id="calendar-grid" class="calendar-grid">
+               <!-- Grid: Mon Tue Wed Thu Fri Sat Sun -->
+               <!-- Grid: Days -->
+             </div>
+          </div>
+        </section>
+
+        <!-- View: Stats -->
+        <section id="view-stats" class="view">
+          <div class="container">
+            <h2 class="view-title">Reports</h2>
+            
+            <div id="monthly-summary-container">
+              <!-- Monthly summaries will be injected here -->
+            </div>
+
+            <div id="monthly-details-section" class="hidden">
+               <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 32px; margin-bottom: 16px;">
+                  <h3 id="details-month-name" style="font-size: 18px;">April 2026 Details</h3>
+                  <button id="back-to-months" class="btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px;">Back</button>
+               </div>
+               
+               <div class="stats-card">
+                 <div class="stat-item">
+                   <p class="stat-label">Total Quantity</p>
+                   <p class="stat-value" id="stat-total-qty">0 kg</p>
+                 </div>
+                 <div class="stat-divider"></div>
+                 <div class="stat-item">
+                   <p class="stat-label">Estimated Amount</p>
+                   <p class="stat-value highlight" id="stat-total-amount">₹0</p>
+                 </div>
+               </div>
+               
+               <div id="monthly-entries-list" class="entries-list" style="margin-top: 16px; max-height: 400px; overflow-y: auto;">
+                 <!-- JS will list daily entries here -->
+               </div>
+
+               <div class="payment-card" style="margin-top: 32px; background: var(--accent); padding: 20px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                     <p class="status-label" style="color: var(--text-dark)">Payment Status</p>
+                     <p id="payment-status-text" style="font-weight: 700; color: #FF3B30;">Unpaid</p>
+                  </div>
+                  <button id="toggle-payment" class="btn-primary" style="width: auto; padding: 10px 20px; font-size: 14px;">Mark as Paid</button>
+               </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Bottom Nav -->
+      <nav class="bottom-nav">
+        <button class="nav-item active" data-view="view-today">
+          <i data-lucide="home"></i>
+          <span>Today</span>
+        </button>
+        <button class="nav-item" data-view="view-calendar">
+          <i data-lucide="calendar"></i>
+          <span>History</span>
+        </button>
+        <button class="nav-item" data-view="view-stats">
+          <i data-lucide="bar-chart"></i>
+          <span>Stats</span>
+        </button>
+      </nav>
+
+      <!-- Settings Overlays / Modals -->
+       <div id="settings-modal" class="modal">
+         <div class="modal-content">
+            <div class="modal-header">
+              <h3>Settings</h3>
+              <button id="closeSettings" class="close-btn">&times;</button>
+            </div>
+            <div class="settings-body">
+              <div class="setting-group">
+                <label for="milk-rate">Price per kg (₹)</label>
+                <input type="number" id="milk-rate" value="50" />
+              </div>
+              <div class="setting-group">
+                <label for="reminder-time">Daily Reminder Time</label>
+                <input type="time" id="reminder-time" value="08:00" />
+              </div>
+              <p class="hint">Notification will be sent if you forget to log today's milk.</p>
+              
+              <div class="setting-group" style="margin-top: 32px; border-top: 1px solid #eee; padding-top: 24px;">
+                <label>Data Management</label>
+                <div style="display: flex; gap: 8px;">
+                   <button id="export-btn" class="btn-secondary" style="font-size: 11px; padding: 12px 6px;">💾 Backup</button>
+                   <button id="import-btn-trigger" class="btn-secondary" style="font-size: 11px; padding: 12px 6px;">📤 Restore</button>
+                   <input type="file" id="import-file" style="display:none;" accept=".json" />
+                </div>
+                <p class="hint">Keep your data safe by downloading a backup file.</p>
+              </div>
+
+              <button id="save-settings" class="btn-primary">Save Changes</button>
+            </div>
+         </div>
+       </div>
+
+       <!-- Confirm Change Modal -->
+       <div id="confirm-modal" class="modal">
+         <div class="modal-content">
+            <div class="modal-header">
+              <h3>Confirm Change</h3>
+            </div>
+            <div class="settings-body">
+              <p>You have already entered a quantity for today. Are you sure you want to change it?</p>
+              <div class="modal-footer">
+                <button id="cancel-change" class="btn-secondary">Cancel</button>
+                <button id="confirm-change" class="btn-primary">Confirm</button>
+              </div>
+            </div>
+         </div>
+       </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
