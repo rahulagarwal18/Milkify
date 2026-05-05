@@ -131,6 +131,7 @@ function switchView(viewId: string) {
         btn.classList.toggle('active', btn.getAttribute('data-view') === viewId);
     });
 
+    if (viewId === 'view-today') renderTodayView();
     if (viewId === 'view-calendar') renderCalendar();
     if (viewId === 'view-stats') {
         monthlySummaryContainer.classList.remove('hidden');
@@ -144,11 +145,16 @@ function renderTodayView() {
     const today = DateTime.now().toISODate();
     const sel = DateTime.fromISO(selectedDate);
     
+    // Ensure display date is accurate to the selected date
     displayDate.textContent = sel.toFormat('cccc, d MMMM');
+    
     if (selectedDate === today) {
         greetingText.textContent = "Milk purchased today?";
+        greetingText.parentElement?.classList.remove('past-date-warning');
     } else {
         greetingText.textContent = `Purchase for ${sel.toFormat('d MMM')}?`;
+        // Add a visual cue that this is a past/different date
+        greetingText.parentElement?.classList.add('past-date-warning');
     }
     
     const options = [0, 0.5, 1, 1.5, 2, 2.5, 3];
@@ -159,7 +165,8 @@ function renderTodayView() {
         btn.className = `qty-option ${entries[selectedDate] === qty ? 'selected' : ''}`;
         // Highlight 1.5 as default if nothing selected
         if (qty === 1.5 && entries[selectedDate] === undefined) {
-            btn.style.borderColor = 'rgba(0, 122, 255, 0.5)';
+            btn.style.borderColor = 'var(--primary)';
+            btn.style.boxShadow = '0 0 10px rgba(0, 122, 255, 0.2)';
         }
         btn.innerHTML = `
             <span class="qty-label">${qty}</span>
@@ -204,12 +211,21 @@ function selectQuantity(qty: number) {
     entries[selectedDate] = qty;
     Storage.saveEntry(selectedDate, qty);
     customInputGroup.classList.add('hidden');
+    
+    // After saving, if it was a past date, reset back to today
+    const today = DateTime.now().toISODate()!;
+    if (selectedDate !== today) {
+        selectedDate = today;
+        alert("Entry saved! Returning to today's date.");
+    }
+    
     renderTodayView();
     updateStats();
 }
 
 function updateTodaySummary() {
-    const thisMonth = DateTime.now().toFormat('yyyy-MM');
+    const today = DateTime.now();
+    const thisMonth = today.toFormat('yyyy-MM');
     let totalQty = 0;
     Object.keys(entries).forEach(date => {
         if (date.startsWith(thisMonth)) totalQty += entries[date];
@@ -259,7 +275,6 @@ function renderCalendar() {
         cell.onclick = () => {
             selectedDate = dateStr;
             switchView('view-today');
-            renderTodayView();
         };
         calendarGrid.appendChild(cell);
     }
@@ -267,13 +282,21 @@ function renderCalendar() {
 
 // --- STATS VIEW ---
 function updateStats() {
-    // 1. Group by Month
+    const now = DateTime.now();
+    const currentYear = now.year;
+    
+    // 1. Group by Month with Filters
     const months: Record<string, { qty: number, count: number }> = {};
     Object.keys(entries).forEach(date => {
-        const m = date.substring(0, 7); // yyyy-MM
-        if (!months[m]) months[m] = { qty: 0, count: 0 };
-        months[m].qty += entries[date];
-        months[m].count += 1;
+        const dt = DateTime.fromISO(date);
+        const mStr = date.substring(0, 7); // yyyy-MM
+        
+        // FILTER: Only current year and April onwards (April is month 4)
+        if (dt.year === currentYear && dt.month >= 4) {
+            if (!months[mStr]) months[mStr] = { qty: 0, count: 0 };
+            months[mStr].qty += entries[date];
+            months[mStr].count += 1;
+        }
     });
 
     // 2. Render Monthly Summaries
@@ -281,7 +304,11 @@ function updateStats() {
     const sortedMonths = Object.keys(months).sort((a, b) => b.localeCompare(a));
     
     if (sortedMonths.length === 0) {
-        monthlySummaryContainer.innerHTML = '<p style="text-align:center; opacity:0.5; margin-top:40px;">No entries yet.</p>';
+        monthlySummaryContainer.innerHTML = `
+            <div style="text-align:center; opacity:0.5; margin-top:40px; padding: 20px;">
+                <p>No entries found for ${currentYear} (April onwards).</p>
+            </div>
+        `;
     }
 
     sortedMonths.forEach(m => {
